@@ -1,12 +1,12 @@
-use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
+use tokio::{io::AsyncWriteExt, net::TcpListener};
 
+#[derive(Clone)]
 struct Config {
     data: String,
 }
 
 #[tokio::main]
 async fn main() {
-    // Bind the listener to the address
     let listener = TcpListener::bind("127.0.0.1:6379").await.unwrap();
 
     // Assume config is initialized / read when program starts
@@ -16,13 +16,12 @@ async fn main() {
     };
 
     loop {
-        // The second item contains the IP and port of the new connection.
         let (mut socket, _) = listener.accept().await.unwrap();
-        
+        let cfg_copy = cfg.clone();
         tokio::spawn(async move {
             // assume we need to spawn for some long running I/O task
             // but we need to use config (for READ ONLY) in this
-            socket.write(cfg.data.as_bytes()).await;
+            socket.write(cfg_copy.data.as_bytes()).await;
         });
     }
 }
